@@ -1,7 +1,7 @@
 from sqlalchemy import Column, DateTime, Integer, String, Text, Float, ForeignKey, Enum, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from app.database import Base
+from app.database.connection import Base
 
 class User(Base):
     __tablename__ = 'users'
@@ -57,7 +57,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id'))
     total_amount = Column(Float)
-    status = Column(Enum('pending', 'shipped', 'delivered', 'cancelled', name='order_status'))
+    status = Column(String, default='pending', nullable=False) 
     shipping_address = Column(Text)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

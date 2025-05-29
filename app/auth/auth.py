@@ -150,9 +150,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from app.schemas.schema import UserCreate, UserResponse, Token
-from app.database import AsyncSessionLocal
-from app.models import User
-from app.utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, generate_otp, get_password_hash, send_otp_email, verify_password
+from app.database.connection import AsyncSessionLocal
+from app.models.models import User
+from app.utils.utils import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, generate_otp, get_password_hash, send_otp_email, verify_password
 
 async def get_db():
     async_db = AsyncSessionLocal()
