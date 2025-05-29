@@ -1,0 +1,17 @@
+
+
+# Python bytecode files
+__pycache__/
+*.pyc
+
+# Virtual environment directory
+venv/
+
+# Environment configuration file (for sensitive info like keys, passwords)
+.env
+
+# IDE settings (example for Visual Studio Code)
+.vscode/
+
+# .pytest_cache directory for test caching
+.pytest_cache/
