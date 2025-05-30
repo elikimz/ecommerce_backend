@@ -36,4 +36,4 @@ async def get_db():
         yield session
 
 
-from app.models.models import User,Category,Product,Order,OrderItem,Cart,CartItem
+# from app.models.models import User,Category,Product,Order,OrderItem,Cart,CartItem

@@ -40,3 +40,8 @@ class ResetPasswordRequest(BaseModel):
     email: EmailStr
     otp: str
     new_password: str
+
+
+class UserUpdate(BaseModel):
+    address: Optional[str] = None
+    phone: Optional[str] = None
