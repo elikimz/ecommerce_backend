@@ -74,8 +74,6 @@ class OrderItem(Base):
     product_id = Column(Integer, ForeignKey('products.id'))
     quantity = Column(Integer)
     price = Column(Float)
-    otp = Column(String, nullable=True)
-    otp_expires_at = Column(DateTime, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
