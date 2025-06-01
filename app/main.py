@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.routers import users ,categories,products
+from app.routers import users ,categories,products,order
 
 app = FastAPI()
 
@@ -21,6 +21,7 @@ app.add_middleware(SessionMiddleware, secret_key="super-secret-session-key-pleas
 app.include_router(users.router, tags=["auth"]),
 app.include_router(categories.router, tags=["Category"]),
 app.include_router(products.router,  prefix="/products",tags=["Products"]),
+app.include_router(order.router, prefix="/orders", tags=["order"])
 
 
 

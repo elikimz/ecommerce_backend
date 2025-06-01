@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel, ConfigDict, EmailStr
-from typing import Optional
+from typing import List, Optional
 from datetime import datetime
 
 class Token(BaseModel):
@@ -93,6 +93,47 @@ class ProductOut(ProductBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    category: CategoryOut
 
     class Config:
         orm_mode = True
+
+
+# --- OrderItem ---
+class OrderItemBase(BaseModel):
+    product_id: int
+    quantity: int
+    price: float
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+class OrderItemOut(OrderItemBase):
+    id: int
+
+    class Config:
+        orm_mode = True
+
+# --- Order ---
+class OrderBase(BaseModel):
+    total_amount: float
+    shipping_address: str
+    status: Optional[str] = "pending"
+
+class OrderCreate(OrderBase):
+    order_items: List[OrderItemCreate]
+
+class OrderUpdate(BaseModel):
+    total_amount: Optional[float] = None
+    shipping_address: Optional[str] = None
+    status: Optional[str] = None
+
+class OrderOut(OrderBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    order_items: List[OrderItemOut]
+
+    class Config:
+        orm_mode = True        

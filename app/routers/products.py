@@ -1,7 +1,13 @@
-from typing import List
+
+
+
+
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.models import Product, User
 from app.schemas.schema import ProductCreate, ProductUpdate, ProductOut
 from app.auth.auth import get_db, get_current_user
@@ -36,15 +42,26 @@ async def create_product(
 @router.get(
     "/",
     response_model=List[ProductOut],
-    summary="Get all products",
+    summary="Get all products (with optional search filters)",
 )
 async def get_products(
+    name: Optional[str] = Query(None, description="Search by product name"),
+    category: Optional[str] = Query(None, description="Filter by category name"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Product).offset(skip).limit(limit))
+    query = select(Product).options(joinedload(Product.category))
+
+    if name:
+        query = query.where(Product.name.ilike(f"%{name}%"))
+
+    if category:
+        query = query.join(Product.category).where(Product.category.has(name=category))
+
+    query = query.offset(skip).limit(limit)
+
+    result = await db.execute(query)
     products = result.scalars().all()
     return products
 
@@ -59,7 +76,9 @@ async def get_product(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    result = await db.execute(select(Product).where(Product.id == product_id))
+    result = await db.execute(
+        select(Product).options(joinedload(Product.category)).where(Product.id == product_id)
+    )
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(
@@ -100,7 +119,15 @@ async def update_product(
 
     await db.commit()
     await db.refresh(product)
-    return product
+
+    # Re-fetch the product with joinedload for category to avoid lazy loading error
+    result = await db.execute(
+        select(Product).options(joinedload(Product.category)).where(Product.id == product_id)
+    )
+    updated_product = result.scalar_one()
+
+    return updated_product
+
 
 
 @router.delete(
@@ -129,4 +156,3 @@ async def delete_product(
 
     await db.delete(product)
     await db.commit()
-    return  # 204 No Content
