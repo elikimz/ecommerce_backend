@@ -137,3 +137,29 @@ class OrderOut(OrderBase):
 
     class Config:
         orm_mode = True        
+
+
+class CartItemOut(BaseModel):
+    product_id: int
+    quantity: int
+
+    class Config:
+        orm_mode = True
+
+class CartOut(BaseModel):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    cart_items: Optional[List[CartItemOut]] = []
+
+    class Config:
+        orm_mode = True
+
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+
+class CartItemUpdate(BaseModel):
+    product_id: int
+    quantity: int
