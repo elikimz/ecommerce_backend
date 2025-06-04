@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
-from app.models.models import Cart, User
+from app.models.models import Cart, Product, User, CartItem
 from app.auth.auth import get_current_user, get_db
 from app.schemas.schema import CartOut
 
@@ -15,7 +15,6 @@ async def create_cart(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    # Check if user already has a cart
     result = await db.execute(select(Cart).where(Cart.user_id == current_user.id))
     existing_cart = result.scalar_one_or_none()
 
@@ -37,7 +36,11 @@ async def get_cart(
 ):
     result = await db.execute(
         select(Cart)
-        .options(selectinload(Cart.cart_items))  # preload items if needed
+        .options(
+            selectinload(Cart.cart_items)
+            .selectinload(CartItem.product)
+            .selectinload(Product.category)   # <-- eagerly load category here
+        )
         .where(Cart.user_id == current_user.id)
     )
     cart = result.scalar_one_or_none()

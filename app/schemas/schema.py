@@ -142,6 +142,7 @@ class OrderOut(OrderBase):
 class CartItemOut(BaseModel):
     product_id: int
     quantity: int
+    product: Optional[ProductOut]
 
     class Config:
         orm_mode = True
@@ -159,6 +160,7 @@ class CartOut(BaseModel):
 class CartItemCreate(BaseModel):
     product_id: int
     quantity: int
+    
 
 class CartItemUpdate(BaseModel):
     product_id: int
