@@ -24,6 +24,7 @@ class UserResponse(BaseModel):
     email: EmailStr
     address: str
     phone: str
+    profile_image: Optional[str] = None
     created_at: datetime
     updated_at: datetime
 
