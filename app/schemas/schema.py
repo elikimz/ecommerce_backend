@@ -1,7 +1,7 @@
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import List, Optional
-from datetime import datetime
+from datetime import date, datetime
 
 class Token(BaseModel):
     access_token: str
@@ -43,9 +43,13 @@ class ResetPasswordRequest(BaseModel):
 
 
 class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
     address: Optional[str] = None
     phone: Optional[str] = None
-
+    profile_image: Optional[str] = None
+    gender: Optional[str] = None
+    date_of_birth: Optional[date] = None
 
 
 
