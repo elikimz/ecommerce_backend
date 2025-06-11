@@ -48,7 +48,7 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
     address: Optional[str] = None
     phone: Optional[str] = None
-    profile_image: Optional[str] = None
+    # profile_image: Optional[str] = None
     gender: Optional[str] = None
     date_of_birth: Optional[date] = None
 
