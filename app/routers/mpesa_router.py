@@ -69,6 +69,7 @@
 
 
 
+import json
 from fastapi import APIRouter, Depends, Request, HTTPException
 from sqlalchemy.orm import Session
 from app.database.connection import get_db
@@ -98,13 +99,17 @@ async def initiate_payment(phone: str, amount: float, order_id: int, db: Session
         raise HTTPException(status_code=500, detail="Failed to initiate STK Push")
 
 
+
 @router.post("/callback")
 async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
     try:
-        payload = await request.json()
+        raw_body = await request.body()
+        logger.info(f"Raw callback body: {raw_body.decode('utf-8')}")
+        payload = json.loads(raw_body)
     except Exception as e:
         logger.error(f"Failed to decode M-PESA callback JSON: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
 
     logger.info(f"Received M-PESA callback: {payload}")
 
