@@ -90,6 +90,7 @@ class OrderItem(Base):
 
     order = relationship("Order", back_populates="order_items")
     product = relationship("Product", back_populates="order_items")
+    
 
 class Cart(Base):
     __tablename__ = 'carts'
