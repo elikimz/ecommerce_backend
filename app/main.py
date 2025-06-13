@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from app.routers import users ,categories,products,order,cart,cart_items
+from app.routers import users ,categories,products,order,cart,cart_items,mpesa_router
 
 app = FastAPI()
 
@@ -23,7 +23,8 @@ app.include_router(categories.router, tags=["Category"]),
 app.include_router(products.router,  prefix="/products",tags=["Products"]),
 app.include_router(order.router, prefix="/orders", tags=["order"]),
 app.include_router(cart.router, prefix="/cart", tags=["Cart"]),
-app.include_router(cart_items.router, tags=["CartItems"])
+app.include_router(cart_items.router, tags=["CartItems"]),
+app.include_router(mpesa_router.router,prefix="/mpesa", tags=["M-PESA"])
 
 
 @app.get("/")
