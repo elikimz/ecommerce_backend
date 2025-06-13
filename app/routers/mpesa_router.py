@@ -69,14 +69,17 @@
 
 
 
+
 import json
+import logging
+from datetime import datetime
 from fastapi import APIRouter, Depends, Request, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.database.connection import get_db
 from app.routers.mpesa_auth import send_stk_push
-from app.models.models import Payment, Order  # Adjust path if needed
-from datetime import datetime
-import logging
+from app.models.models import Payment, Order
 
 router = APIRouter()
 
@@ -86,22 +89,18 @@ logger = logging.getLogger(__name__)
 
 
 @router.post("/stk-push")
-async def initiate_payment(phone: str, amount: float, order_id: int, db: Session = Depends(get_db)):
+async def initiate_payment(phone: str, amount: float, order_id: int, db: AsyncSession = Depends(get_db)):
     try:
         response = await send_stk_push(phone, amount, order_id)
-
-        # Add debug log to inspect response before returning
         logger.info(f"STK Push response: {response}")
-
         return {"message": "STK Push initiated", "response": response}
     except Exception as e:
         logger.error(f"Error during STK Push initiation: {e}")
         raise HTTPException(status_code=500, detail="Failed to initiate STK Push")
 
 
-
 @router.post("/callback")
-async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
+async def mpesa_callback(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         raw_body = await request.body()
         logger.info(f"Raw callback body: {raw_body.decode('utf-8')}")
@@ -109,7 +108,6 @@ async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
     except Exception as e:
         logger.error(f"Failed to decode M-PESA callback JSON: {e}")
         raise HTTPException(status_code=400, detail="Invalid JSON payload")
-
 
     logger.info(f"Received M-PESA callback: {payload}")
 
@@ -128,7 +126,10 @@ async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
             logger.warning("Missing data in callback")
             return {"message": "Missing payment data in callback"}
 
-        order = db.query(Order).filter(Order.id == order_id).first()
+        # Async query to get order
+        result = await db.execute(select(Order).filter(Order.id == order_id))
+        order = result.scalars().first()
+
         if not order:
             logger.warning(f"Order not found with ID: {order_id}")
             return {"message": "Order not found"}
@@ -143,7 +144,7 @@ async def mpesa_callback(request: Request, db: Session = Depends(get_db)):
             updated_at=datetime.utcnow()
         )
         db.add(payment)
-        db.commit()
+        await db.commit()
 
         logger.info(f"Payment saved: Order ID {order_id}, Receipt {receipt}, Amount {amount}")
         return {"message": "Payment successful", "receipt": receipt}
