@@ -4,12 +4,12 @@ from datetime import datetime
 from os import getenv
 from fastapi import HTTPException
 
-MPESA_BASE_URL = getenv("MPESA_BASE_URL")
-CONSUMER_KEY = getenv("MPESA_CONSUMER_KEY")
-CONSUMER_SECRET = getenv("MPESA_CONSUMER_SECRET")
-SHORTCODE = getenv("MPESA_SHORTCODE")
-PASSKEY = getenv("MPESA_PASSKEY")
-CALLBACK_URL = getenv("MPESA_CALLBACK_URL")
+MPESA_BASE_URL=getenv("MPESA_BASE_URL")
+CONSUMER_KEY=getenv("MPESA_CONSUMER_KEY")
+CONSUMER_SECRET=getenv("MPESA_CONSUMER_SECRET")
+SHORTCODE =getenv("MPESA_SHORTCODE")
+PASSKEY =getenv("MPESA_PASSKEY")
+CALLBACK_URL =getenv("MPESA_CALLBACK_URL")
 
 async def get_mpesa_access_token() -> str:
     url = f"{MPESA_BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
