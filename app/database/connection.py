@@ -33,7 +33,12 @@ Base = declarative_base()
 
 async def get_db():
     async with AsyncSessionLocal() as session:
-        yield session
+
+        yield 
+        
 
 
-# from app.models.models import User,Category,Product,Order,OrderItem,Cart,CartItem
+
+
+
+# from app.models.models import User,Category,Product,Order,OrderItem,Cart,ProductImage,ProductVideo

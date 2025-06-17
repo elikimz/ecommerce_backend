@@ -1,5 +1,5 @@
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, HttpUrl
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -76,29 +76,50 @@ class CategoryOut(CategoryBase):
         orm_mode = True
 
 
+# --- ProductImage and ProductVideo ---
+class ProductImageOut(BaseModel):
+    url: HttpUrl
 
+    class Config:
+        orm_mode = True
+
+class ProductVideoOut(BaseModel):
+    url: HttpUrl
+
+    class Config:
+        orm_mode = True
+
+
+# --- ProductBase (unchanged) ---
 class ProductBase(BaseModel):
     name: str
     description: Optional[str] = None
     price: float
     category_id: int
     stock: int
-    image_url: Optional[str] = None
+    image_url: Optional[str] = None  # Thumbnail
 
 
+# --- Create ---
 class ProductCreate(ProductBase):
-    pass
+    image_urls: List[HttpUrl]
+    video_urls: Optional[List[HttpUrl]] = []
 
 
+# --- Update ---
 class ProductUpdate(ProductBase):
-    pass
+    image_urls: Optional[List[HttpUrl]] = None
+    video_urls: Optional[List[HttpUrl]] = None
 
 
+# --- Output ---
 class ProductOut(ProductBase):
     id: int
     created_at: datetime
     updated_at: datetime
     category: CategoryOut
+    images: List[ProductImageOut] = []
+    videos: List[ProductVideoOut] = []
 
     class Config:
         orm_mode = True
