@@ -342,6 +342,7 @@ async def delete_product(
     product = result.scalar_one_or_none()
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
+    
 
     await db.delete(product)
     await db.commit()
