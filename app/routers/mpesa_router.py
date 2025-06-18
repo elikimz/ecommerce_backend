@@ -59,14 +59,15 @@ async def mpesa_callback(request: Request, db: AsyncSession = Depends(get_db)):
 
     # Update payment
     if cb["ResultCode"] == 0:
-        meta = {i["Name"]: i.get("Value") for i in cb["CallbackMetadata"]["Item"]}
-        pay.status = "COMPLETED"
-        pay.mpesa_receipt_number = meta.get("MpesaReceiptNumber")
-        pay.amount = meta.get("Amount")
-        pay.phone_number = meta.get("PhoneNumber")
-        pay.transaction_date = datetime.utcnow()
+     meta = {i["Name"]: i.get("Value") for i in cb["CallbackMetadata"]["Item"]}
+     pay.status = "COMPLETED"
+     pay.mpesa_receipt_number = meta.get("MpesaReceiptNumber")
+     pay.amount = meta.get("Amount")
+     pay.phone_number = str(meta.get("PhoneNumber"))  # 👈 Fix here
+     pay.transaction_date = datetime.utcnow()
     else:
-        pay.status = "FAILED"
+     pay.status = "FAILED"
+
 
     pay.updated_at = datetime.utcnow()
     await db.commit()
