@@ -31,27 +31,35 @@ async def initiate_payment(
 
 
 
+
 @router.post("/callback")
 async def mpesa_callback(request: Request, db: AsyncSession = Depends(get_db)):
-    raw = await request.body()
-    log.info("🚀 Callback received: %s", raw.decode())
-
     try:
-        cb  = json.loads(raw)["Body"]["stkCallback"]
-        cid = cb["CheckoutRequestID"]
-    except Exception as e:
-        log.error("❌ Callback JSON error: %s", e)
-        raise HTTPException(400, "Invalid callback payload")
+        raw = await request.body()
+        if not raw:
+            raise HTTPException(400, "Empty callback body")
 
-    # Find the payment
+        data = json.loads(raw.decode())
+        log.info("🔁 Raw Callback JSON: %s", data)
+
+        cb = data["Body"]["stkCallback"]
+        cid = cb["CheckoutRequestID"]
+
+    except json.JSONDecodeError as e:
+        log.error("❌ Callback JSON error: %s", e)
+        raise HTTPException(400, "Invalid JSON in callback payload")
+    except KeyError:
+        raise HTTPException(400, "Malformed callback payload")
+
+    # Find payment
     q = await db.execute(select(Payment).filter_by(checkout_request_id=cid))
     pay = q.scalars().first()
     if not pay:
-        log.warning("⚠️ Payment not found for CheckoutRequestID: %s", cid)
         return {"message": "Payment not found"}
 
+    # Update payment
     if cb["ResultCode"] == 0:
-        meta = {i["Name"]: i["Value"] for i in cb["CallbackMetadata"]["Item"]}
+        meta = {i["Name"]: i.get("Value") for i in cb["CallbackMetadata"]["Item"]}
         pay.status = "COMPLETED"
         pay.mpesa_receipt_number = meta.get("MpesaReceiptNumber")
         pay.amount = meta.get("Amount")
@@ -62,5 +70,5 @@ async def mpesa_callback(request: Request, db: AsyncSession = Depends(get_db)):
 
     pay.updated_at = datetime.utcnow()
     await db.commit()
-    log.info("✅ Payment status updated to %s", pay.status)
+
     return {"message": "Callback processed", "status": pay.status}
