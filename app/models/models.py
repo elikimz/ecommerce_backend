@@ -158,7 +158,7 @@
 
 
 from sqlalchemy import (
-    Column, Date, DateTime, Integer, String, Text, Float, ForeignKey, Boolean
+    Column, Date, DateTime, Integer, String, Text, Float, ForeignKey, Boolean, func
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -312,7 +312,7 @@ class Payment(Base):
     order_id = Column(Integer, ForeignKey('orders.id', ondelete='CASCADE'))
     amount = Column(Float)
     payment_method = Column(String, nullable=False)
-    status = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="PENDING")  # PENDING, COMPLETED, CANCELLED, FAILED
 
     phone_number = Column(String, nullable=True)
     mpesa_receipt_number = Column(String, nullable=True)
@@ -320,7 +320,7 @@ class Payment(Base):
     merchant_request_id = Column(String, nullable=True)
     checkout_request_id = Column(String, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=func.utcnow())
+    updated_at = Column(DateTime, default=func.utcnow(), onupdate=func.utcnow())
 
     order = relationship("Order", back_populates="payment")
