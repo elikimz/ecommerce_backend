@@ -100,7 +100,6 @@ async def create_cart(
     return new_cart
 
 
-
 # ========== GET USER'S CART ==========
 @router.get("/", response_model=CartOut)
 async def get_cart(
