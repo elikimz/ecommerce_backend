@@ -1,3 +1,4 @@
+
 # from typing import List
 # from fastapi import APIRouter, Depends, HTTPException, status
 # from sqlalchemy import select
@@ -42,7 +43,6 @@
 #     order_with_items = result.scalar_one()
 #     return order_with_items
 
-
 # @router.get("/orders", response_model=List[OrderOut], summary="Get all orders")
 # async def get_orders(
 #     skip: int = 0,
@@ -56,6 +56,22 @@
 #     result = await db.execute(query.offset(skip).limit(limit))
 #     return result.scalars().all()
 
+# @router.get("/orders/me", response_model=List[OrderOut], summary="Get orders for the current user")
+# async def get_my_orders(
+#     skip: int = 0,
+#     limit: int = 100,
+#     db: AsyncSession = Depends(get_db),
+#     current_user: User = Depends(get_current_user),
+# ):
+#     # This endpoint will always return orders for the current user, regardless of their role
+#     result = await db.execute(
+#         select(Order)
+#         .options(selectinload(Order.order_items))
+#         .where(Order.user_id == current_user.id)
+#         .offset(skip)
+#         .limit(limit)
+#     )
+#     return result.scalars().all()
 
 # @router.get("/orders/{order_id}", response_model=OrderOut, summary="Get order by ID")
 # async def get_order_by_id(
@@ -74,7 +90,6 @@
 #     if current_user.role.upper() != "ADMIN" and order.user_id != current_user.id:
 #         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this order")
 #     return order
-
 
 # @router.put("/orders/{order_id}", response_model=OrderOut, summary="Update an order by ID")
 # async def update_order(
@@ -108,7 +123,6 @@
 #     )
 #     return result.scalar_one()
 
-
 # @router.delete("/orders/{order_id}", status_code=status.HTTP_204_NO_CONTENT, summary="Delete an order by ID")
 # async def delete_order(
 #     order_id: int,
@@ -129,22 +143,28 @@
 
 
 
-
-
-
-
-
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models.models import Order, OrderItem, User
+from app.models.models import Order, OrderItem, User, Product
 from app.schemas.schema import OrderCreate, OrderUpdate, OrderOut
 from app.auth.auth import get_db, get_current_user
 
 router = APIRouter()
+
+# Loader with nested product, category, images, videos
+product_loader = (
+    selectinload(Order.order_items)
+    .selectinload(OrderItem.product)
+    .options(
+        selectinload(Product.category),
+        selectinload(Product.images),
+        selectinload(Product.videos),
+    )
+)
 
 @router.post("/orders", response_model=OrderOut, status_code=status.HTTP_201_CREATED, summary="Create a new order")
 async def create_order(
@@ -169,14 +189,12 @@ async def create_order(
     await db.commit()
     await db.refresh(new_order)
 
-    # Eagerly load order_items to avoid greenlet issue
     result = await db.execute(
         select(Order)
-        .options(selectinload(Order.order_items))
+        .options(product_loader)
         .where(Order.id == new_order.id)
     )
-    order_with_items = result.scalar_one()
-    return order_with_items
+    return result.scalar_one()
 
 @router.get("/orders", response_model=List[OrderOut], summary="Get all orders")
 async def get_orders(
@@ -185,7 +203,7 @@ async def get_orders(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    query = select(Order).options(selectinload(Order.order_items))
+    query = select(Order).options(product_loader)
     if current_user.role.upper() != "ADMIN":
         query = query.where(Order.user_id == current_user.id)
     result = await db.execute(query.offset(skip).limit(limit))
@@ -198,10 +216,9 @@ async def get_my_orders(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # This endpoint will always return orders for the current user, regardless of their role
     result = await db.execute(
         select(Order)
-        .options(selectinload(Order.order_items))
+        .options(product_loader)
         .where(Order.user_id == current_user.id)
         .offset(skip)
         .limit(limit)
@@ -216,7 +233,7 @@ async def get_order_by_id(
 ):
     result = await db.execute(
         select(Order)
-        .options(selectinload(Order.order_items))
+        .options(product_loader)
         .where(Order.id == order_id)
     )
     order = result.scalar_one_or_none()
@@ -235,7 +252,7 @@ async def update_order(
 ):
     result = await db.execute(
         select(Order)
-        .options(selectinload(Order.order_items))
+        .options(product_loader)
         .where(Order.id == order_id)
     )
     order = result.scalar_one_or_none()
@@ -250,10 +267,9 @@ async def update_order(
     await db.commit()
     await db.refresh(order)
 
-    # Reload with relationships
     result = await db.execute(
         select(Order)
-        .options(selectinload(Order.order_items))
+        .options(product_loader)
         .where(Order.id == order_id)
     )
     return result.scalar_one()
