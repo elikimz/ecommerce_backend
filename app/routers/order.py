@@ -27,6 +27,93 @@ product_loader = (
 # --------------------------------------------------------------------------- #
 #                               CREATE ORDER                                  #
 # --------------------------------------------------------------------------- #
+# @router.post(
+#     "/orders",
+#     response_model=OrderOut,
+#     status_code=status.HTTP_201_CREATED,
+#     summary="Create a new order",
+# )
+# async def create_order(
+#     order: OrderCreate,
+#     background_tasks: BackgroundTasks,
+#     db: AsyncSession = Depends(get_db),
+#     current_user: User = Depends(get_current_user),
+# ):
+#     # 1️⃣  Build order + items (in‑memory)
+#     new_order = Order(
+#         user_id=current_user.id,
+#         customer_name=order.customer_name,
+#         customer_email=order.customer_email,
+#         customer_phone=order.customer_phone,
+#         total_amount=order.total_amount,
+#         shipping_address=order.shipping_address,
+#         status="pending",
+#     )
+
+#     order_items_entities = [
+#         OrderItem(
+#             product_id=i.product_id,
+#             quantity=i.quantity,
+#             price=i.price,
+#         )
+#         for i in order.order_items
+#     ]
+#     new_order.order_items = order_items_entities
+
+#     db.add(new_order)
+#     await db.flush()  # Get order ID before commit
+
+#     # 2️⃣  Fetch product info with images and build email details
+#     item_details: List[dict] = []
+#     for oi in order_items_entities:
+#         res = await db.execute(
+#             select(Product).options(selectinload(Product.images)).where(Product.id == oi.product_id)
+#         )
+#         product = res.scalar_one()
+#         image_url = product.images[0].url if product.images else ""
+#         item_details.append(
+#             {
+#                 "name": product.name,
+#                 "quantity": oi.quantity,
+#                 "price": oi.price,
+#                 "image_url": image_url,
+#             }
+#         )
+
+#     # 3️⃣  Commit and refresh the order
+#     await db.commit()
+#     await db.refresh(new_order)
+
+#     # 4️⃣  Send background email to admin
+#     admin_email = os.getenv("ADMIN_EMAIL")
+#     if not admin_email:
+#         raise HTTPException(status_code=500, detail="ADMIN_EMAIL not configured")
+
+#     email_body = generate_order_email_body(
+#         customer_name=new_order.customer_name,
+#         email=new_order.customer_email,
+#         phone=new_order.customer_phone,
+#         shipping=new_order.shipping_address,
+#         total=new_order.total_amount,
+#         items=item_details,
+#     )
+
+#     background_tasks.add_task(
+#         send_email,
+#         admin_email,
+#         f"New Order #{new_order.id} from {new_order.customer_name}",
+#         email_body,
+#     )
+
+#     # 5️⃣  Return created order
+#     res = await db.execute(
+#         select(Order).options(product_loader).where(Order.id == new_order.id)
+#     )
+#     return res.scalar_one()
+
+
+# app/api/routes/orders.py
+
 @router.post(
     "/orders",
     response_model=OrderOut,
@@ -39,7 +126,7 @@ async def create_order(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    # 1️⃣  Build order + items (in‑memory)
+    # 1. Create order and items
     new_order = Order(
         user_id=current_user.id,
         customer_name=order.customer_name,
@@ -49,21 +136,16 @@ async def create_order(
         shipping_address=order.shipping_address,
         status="pending",
     )
-
     order_items_entities = [
-        OrderItem(
-            product_id=i.product_id,
-            quantity=i.quantity,
-            price=i.price,
-        )
+        OrderItem(product_id=i.product_id, quantity=i.quantity, price=i.price)
         for i in order.order_items
     ]
     new_order.order_items = order_items_entities
 
     db.add(new_order)
-    await db.flush()  # Get order ID before commit
+    await db.flush()
 
-    # 2️⃣  Fetch product info with images and build email details
+    # 2. Fetch product images and build item details
     item_details: List[dict] = []
     for oi in order_items_entities:
         res = await db.execute(
@@ -80,11 +162,10 @@ async def create_order(
             }
         )
 
-    # 3️⃣  Commit and refresh the order
     await db.commit()
     await db.refresh(new_order)
 
-    # 4️⃣  Send background email to admin
+    # 3. Send email to both admin and customer
     admin_email = os.getenv("ADMIN_EMAIL")
     if not admin_email:
         raise HTTPException(status_code=500, detail="ADMIN_EMAIL not configured")
@@ -98,18 +179,17 @@ async def create_order(
         items=item_details,
     )
 
-    background_tasks.add_task(
-        send_email,
-        admin_email,
-        f"New Order #{new_order.id} from {new_order.customer_name}",
-        email_body,
-    )
+    recipients = [admin_email, new_order.customer_email]
+    subject = f"Order #{new_order.id} from {new_order.customer_name}"
 
-    # 5️⃣  Return created order
+    background_tasks.add_task(send_email, subject, recipients, email_body)
+
+    # 4. Return created order
     res = await db.execute(
         select(Order).options(product_loader).where(Order.id == new_order.id)
     )
     return res.scalar_one()
+
 
 # --------------------------------------------------------------------------- #
 #                               GET ORDERS                                    #
