@@ -32,6 +32,7 @@
 # app/EMail/email_service.py
 
 import smtplib
+
 import os
 from typing import List, Union
 from email.mime.multipart import MIMEMultipart
