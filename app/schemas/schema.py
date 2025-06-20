@@ -1,22 +1,32 @@
 
+
+
+    
+
 # from pydantic import BaseModel, ConfigDict, EmailStr, HttpUrl
 # from typing import List, Optional
 # from datetime import date, datetime
 
+
+# # === AUTH ===
 # class Token(BaseModel):
 #     access_token: str
 #     token_type: str
 
+
 # class TokenData(BaseModel):
 #     email: Optional[str] = None
-#     id:int
+#     id: int
 
+
+# # === USER ===
 # class UserCreate(BaseModel):
 #     name: str
 #     email: EmailStr
 #     password: str
 #     address: str
 #     phone: str
+
 
 # class UserResponse(BaseModel):
 #     id: int
@@ -31,11 +41,9 @@
 #     model_config = ConfigDict(from_attributes=True)
 
 
-
-
-
 # class ForgotPasswordRequest(BaseModel):
 #     email: EmailStr
+
 
 # class ResetPasswordRequest(BaseModel):
 #     email: EmailStr
@@ -48,24 +56,24 @@
 #     email: Optional[EmailStr] = None
 #     address: Optional[str] = None
 #     phone: Optional[str] = None
-#     # profile_image: Optional[str] = None
 #     gender: Optional[str] = None
 #     date_of_birth: Optional[date] = None
 
 
-
-
-
+# # === CATEGORY ===
 # class CategoryBase(BaseModel):
 #     name: str
 #     description: Optional[str] = None
 
+
 # class CategoryCreate(CategoryBase):
 #     pass
+
 
 # class CategoryUpdate(BaseModel):
 #     name: Optional[str] = None
 #     description: Optional[str] = None
+
 
 # class CategoryOut(CategoryBase):
 #     id: int
@@ -76,12 +84,13 @@
 #         orm_mode = True
 
 
-# # --- ProductImage and ProductVideo ---
+# # === PRODUCT MEDIA ===
 # class ProductImageOut(BaseModel):
 #     url: HttpUrl
 
 #     class Config:
 #         orm_mode = True
+
 
 # class ProductVideoOut(BaseModel):
 #     url: HttpUrl
@@ -90,29 +99,26 @@
 #         orm_mode = True
 
 
-# # --- ProductBase (unchanged) ---
+# # === PRODUCT ===
 # class ProductBase(BaseModel):
 #     name: str
 #     description: Optional[str] = None
 #     price: float
 #     category_id: int
 #     stock: int
-#     image_url: Optional[str] = None  # Thumbnail
+#     image_url: Optional[str] = None
 
 
-# # --- Create ---
 # class ProductCreate(ProductBase):
 #     image_urls: List[HttpUrl]
 #     video_urls: Optional[List[HttpUrl]] = []
 
 
-# # --- Update ---
 # class ProductUpdate(ProductBase):
 #     image_urls: Optional[List[HttpUrl]] = None
 #     video_urls: Optional[List[HttpUrl]] = None
 
 
-# # --- Output ---
 # class ProductOut(ProductBase):
 #     id: int
 #     created_at: datetime
@@ -125,34 +131,41 @@
 #         orm_mode = True
 
 
-# # --- OrderItem ---
+# # === ORDER ITEM ===
 # class OrderItemBase(BaseModel):
 #     product_id: int
 #     quantity: int
 #     price: float
 
+
 # class OrderItemCreate(OrderItemBase):
 #     pass
 
+
 # class OrderItemOut(OrderItemBase):
 #     id: int
+#     product: ProductOut  # ✅ Include full product info
 
 #     class Config:
 #         orm_mode = True
 
-# # --- Order ---
+
+# # === ORDER ===
 # class OrderBase(BaseModel):
 #     total_amount: float
 #     shipping_address: str
 #     status: Optional[str] = "pending"
 
+
 # class OrderCreate(OrderBase):
 #     order_items: List[OrderItemCreate]
+
 
 # class OrderUpdate(BaseModel):
 #     total_amount: Optional[float] = None
 #     shipping_address: Optional[str] = None
 #     status: Optional[str] = None
+
 
 # class OrderOut(OrderBase):
 #     id: int
@@ -162,9 +175,10 @@
 #     order_items: List[OrderItemOut]
 
 #     class Config:
-#         orm_mode = True        
+#         orm_mode = True
 
 
+# # === CART ===
 # class CartItemOut(BaseModel):
 #     product_id: int
 #     quantity: int
@@ -172,6 +186,7 @@
 
 #     class Config:
 #         orm_mode = True
+
 
 # class CartOut(BaseModel):
 #     id: int
@@ -183,18 +198,16 @@
 #     class Config:
 #         orm_mode = True
 
+
 # class CartItemCreate(BaseModel):
 #     product_id: int
 #     quantity: int
-    
+
 
 # class CartItemUpdate(BaseModel):
 #     product_id: int
 #     quantity: int
 
-
-
-    
 
 from pydantic import BaseModel, ConfigDict, EmailStr, HttpUrl
 from typing import List, Optional
@@ -345,6 +358,9 @@ class OrderItemOut(OrderItemBase):
 
 # === ORDER ===
 class OrderBase(BaseModel):
+    customer_name: str
+    customer_email: EmailStr
+    customer_phone: str
     total_amount: float
     shipping_address: str
     status: Optional[str] = "pending"
@@ -355,6 +371,9 @@ class OrderCreate(OrderBase):
 
 
 class OrderUpdate(BaseModel):
+    customer_name: Optional[str] = None
+    customer_email: Optional[EmailStr] = None
+    customer_phone: Optional[str] = None
     total_amount: Optional[float] = None
     shipping_address: Optional[str] = None
     status: Optional[str] = None

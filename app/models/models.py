@@ -99,9 +99,15 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
-    total_amount = Column(Float)
+
+    # Snapshot of customer details at time of order
+    customer_name = Column(String, nullable=False)
+    customer_email = Column(String, nullable=False)
+    customer_phone = Column(String, nullable=False)
+
+    total_amount = Column(Float, nullable=False)
     status = Column(String, default='pending', nullable=False)
-    shipping_address = Column(Text)
+    shipping_address = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
