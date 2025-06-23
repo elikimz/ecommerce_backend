@@ -53,6 +53,26 @@ class Category(Base):
     products = relationship("Product", back_populates="category")
 
 
+# class Product(Base):
+#     __tablename__ = 'products'
+
+#     id = Column(Integer, primary_key=True, index=True)
+#     name = Column(String, index=True)
+#     description = Column(Text)
+#     price = Column(Float)
+#     category_id = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'))
+#     stock = Column(Integer)
+#     image_url = Column(String, nullable=True)  # Primary thumbnail (optional)
+#     created_at = Column(DateTime, default=datetime.utcnow)
+#     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+#     category = relationship("Category", back_populates="products")
+#     order_items = relationship("OrderItem", back_populates="product")
+#     cart_items = relationship("CartItem", back_populates="product")
+
+#     images = relationship("ProductImage", back_populates="product", cascade="all, delete", passive_deletes=True)
+#     videos = relationship("ProductVideo", back_populates="product", cascade="all, delete", passive_deletes=True)
+
 class Product(Base):
     __tablename__ = 'products'
 
@@ -63,6 +83,11 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'))
     stock = Column(Integer)
     image_url = Column(String, nullable=True)  # Primary thumbnail (optional)
+    
+    # ✅ New fields
+    colors = Column(String, nullable=True)  # e.g. "Red,Blue,Black"
+    warranty = Column(String, nullable=True)  # e.g. "6 months", "1 year"
+
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

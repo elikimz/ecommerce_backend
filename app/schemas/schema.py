@@ -1,8 +1,5 @@
 
 
-
-    
-
 # from pydantic import BaseModel, ConfigDict, EmailStr, HttpUrl
 # from typing import List, Optional
 # from datetime import date, datetime
@@ -152,6 +149,9 @@
 
 # # === ORDER ===
 # class OrderBase(BaseModel):
+#     customer_name: str
+#     customer_email: EmailStr
+#     customer_phone: str
 #     total_amount: float
 #     shipping_address: str
 #     status: Optional[str] = "pending"
@@ -162,6 +162,9 @@
 
 
 # class OrderUpdate(BaseModel):
+#     customer_name: Optional[str] = None
+#     customer_email: Optional[EmailStr] = None
+#     customer_phone: Optional[str] = None
 #     total_amount: Optional[float] = None
 #     shipping_address: Optional[str] = None
 #     status: Optional[str] = None
@@ -212,7 +215,6 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, HttpUrl
 from typing import List, Optional
 from datetime import date, datetime
-
 
 # === AUTH ===
 class Token(BaseModel):
@@ -313,6 +315,8 @@ class ProductBase(BaseModel):
     category_id: int
     stock: int
     image_url: Optional[str] = None
+    colors: Optional[str] = None       # ✅ Added
+    warranty: Optional[str] = None     # ✅ Added
 
 
 class ProductCreate(ProductBase):
@@ -320,7 +324,15 @@ class ProductCreate(ProductBase):
     video_urls: Optional[List[HttpUrl]] = []
 
 
-class ProductUpdate(ProductBase):
+class ProductUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    category_id: Optional[int] = None
+    stock: Optional[int] = None
+    image_url: Optional[str] = None
+    colors: Optional[str] = None       # ✅ Added
+    warranty: Optional[str] = None     # ✅ Added
     image_urls: Optional[List[HttpUrl]] = None
     video_urls: Optional[List[HttpUrl]] = None
 
