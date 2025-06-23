@@ -29,7 +29,7 @@ async def create_category(
 @router.get("/categories", response_model=List[CategoryOut], summary="Get all categories")
 async def get_categories(
     skip: int = 0,
-    limit: int = 2,
+    limit: int = 100,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
