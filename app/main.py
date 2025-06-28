@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from app.api.public import sitemap
 from app.routers import users ,categories,products,order,cart,cart_items,mpesa_router
 
 app = FastAPI()
@@ -16,6 +17,9 @@ app.add_middleware(
 
 # Add session middleware
 app.add_middleware(SessionMiddleware, secret_key="super-secret-session-key-please-change")
+
+
+app.include_router(sitemap.router, tags=["SiteMaps"])
 
 # Include routers
 app.include_router(users.router, tags=["auth"]),
